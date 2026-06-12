@@ -36,9 +36,10 @@ export default function RootLayout() {
     return () => clearTimeout(t);
   }, []);
 
+  // Hide the native splash as soon as fonts are ready so CartLoader is visible underneath.
   useEffect(() => {
-    if (loaded && minTimeElapsed) SplashScreen.hideAsync();
-  }, [loaded, minTimeElapsed]);
+    if (loaded) SplashScreen.hideAsync();
+  }, [loaded]);
 
   if (!loaded || !minTimeElapsed) return <CartLoader />;
 
