@@ -1,19 +1,20 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Keyboard,
   ListRenderItem,
   Modal,
-  SafeAreaView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CourseMap } from '@/components/CourseMap';
 import type { MapPoint } from '@/components/CourseMap';
@@ -148,6 +149,13 @@ export default function ResultsScreen() {
 
   const cancelRef = useRef(false);
   const journeysAccum = useRef<Map<string, Journey | null>>(new Map());
+
+  // Dismiss keyboard when leaving this screen (e.g. back to Home)
+  useFocusEffect(
+    useCallback(() => {
+      return () => { Keyboard.dismiss(); };
+    }, [])
+  );
 
   const origin = useMemo(
     () => stations.find((s) => s.id === stationId) ?? null,
@@ -335,7 +343,7 @@ export default function ResultsScreen() {
 
   if (!origin) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={['top']}>
         <StatusBar style="light" />
         <View style={styles.content}>
           <Text style={styles.errorText}>Station not found.</Text>
@@ -345,33 +353,41 @@ export default function ResultsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <StatusBar style="light" />
       <View style={styles.content}>
 
-      {/* ── Pine header — back + list/map toggle + filter ── */}
+      {/* ── Pine header — back LEFT · toggle CENTRE (absolute) · filter RIGHT ── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.headerBtn} activeOpacity={0.7}>
+        <TouchableOpacity
+          onPress={() => { Keyboard.dismiss(); router.back(); }}
+          style={styles.headerBtn}
+          activeOpacity={0.7}
+        >
           <Ionicons name="chevron-back" size={24} color={colors.linen} />
         </TouchableOpacity>
-        <View style={styles.headerSpacer} />
 
-        <View style={styles.viewToggle}>
-          <TouchableOpacity
-            style={[styles.viewToggleBtn, viewMode === 'list' && styles.viewToggleBtnActive]}
-            onPress={() => setViewMode('list')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="list" size={15} color={viewMode === 'list' ? colors.brassText : colors.linen} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.viewToggleBtn, viewMode === 'map' && styles.viewToggleBtnActive]}
-            onPress={() => setViewMode('map')}
-            activeOpacity={0.7}
-          >
-            <Ionicons name="map-outline" size={15} color={viewMode === 'map' ? colors.brassText : colors.linen} />
-          </TouchableOpacity>
+        {/* Toggle sits absolutely so it is dead-centred regardless of button widths */}
+        <View style={styles.headerCenter} pointerEvents="box-none">
+          <View style={styles.viewToggle}>
+            <TouchableOpacity
+              style={[styles.viewToggleBtn, viewMode === 'list' && styles.viewToggleBtnActive]}
+              onPress={() => setViewMode('list')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="list" size={20} color={viewMode === 'list' ? colors.brassText : colors.linen} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.viewToggleBtn, viewMode === 'map' && styles.viewToggleBtnActive]}
+              onPress={() => setViewMode('map')}
+              activeOpacity={0.7}
+            >
+              <Ionicons name="map-outline" size={20} color={viewMode === 'map' ? colors.brassText : colors.linen} />
+            </TouchableOpacity>
+          </View>
         </View>
+
+        <View style={{ flex: 1 }} />
 
         <TouchableOpacity
           onPress={() => setFilterSheetVisible(true)}
@@ -557,23 +573,28 @@ const styles = StyleSheet.create({
   },
   headerBtn: {
     padding: space.sm,
-    minWidth: 40,
+    minWidth: 44,
     alignItems: 'center',
   },
-  headerSpacer: { flex: 1 },
+  // Absolutely centred wrapper — pointerEvents="box-none" lets side buttons receive taps
+  headerCenter: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
 
-  // List / Map toggle (in header)
+  // List / Map toggle (prominently centred in header)
   viewToggle: {
     flexDirection: 'row',
     backgroundColor: 'rgba(0,0,0,0.25)',
-    borderRadius: 8,
-    padding: 2,
-    marginRight: space.xs,
+    borderRadius: 10,
+    padding: 3,
   },
   viewToggleBtn: {
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },

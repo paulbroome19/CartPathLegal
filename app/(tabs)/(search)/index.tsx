@@ -187,7 +187,7 @@ export default function SearchScreen() {
             keyExtractor={(item) => item.id}
             renderItem={renderSuggestion}
             keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{ paddingBottom: insets.bottom + 84 }}
+            contentContainerStyle={{ paddingBottom: insets.bottom + 60 }}
             ListEmptyComponent={
               <Text style={styles.emptyText}>No stations found for "{query}"</Text>
             }
@@ -195,7 +195,7 @@ export default function SearchScreen() {
         ) : (
           <ScrollView
             style={styles.bodyScroll}
-            contentContainerStyle={[styles.bodyContent, { paddingBottom: insets.bottom + 84 }]}
+            contentContainerStyle={[styles.bodyContent, { paddingBottom: insets.bottom + 60 }]}
             keyboardShouldPersistTaps="handled"
           >
 
@@ -375,7 +375,7 @@ const styles = StyleSheet.create({
   bodyScroll: { flex: 1 },
   bodyContent: {
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: 10,
   },
 
   // Find Courses button
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     gap: 8,
     height: 50,
     borderRadius: 14,
-    marginBottom: 20,
+    marginBottom: 14,
     backgroundColor: colors.pine,
   },
   findBtnLabel: {
@@ -409,7 +409,7 @@ const styles = StyleSheet.create({
     borderWidth: 0.5,
     borderColor: colors.hairline,
     paddingHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 10,
   },
 
   // Toggle row
@@ -417,13 +417,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
 
   // Segment block
   segBlock: {
-    paddingVertical: 12,
-    gap: 10,
+    paddingVertical: 10,
+    gap: 8,
   },
 
   filterLabel: {

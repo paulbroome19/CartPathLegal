@@ -41,11 +41,15 @@ export default function TabsLayout() {
               position: 'absolute',
               start: PILL_SIDE,
               end: PILL_SIDE,
-              bottom: insets.bottom + 4,
+              bottom: insets.bottom,
               height: PILL_HEIGHT,
               borderRadius: 28,
               backgroundColor: colors.pine,
               borderTopWidth: 0,
+              // Override the library's injected paddingBottom (safe-area amount) so
+              // the icon sits dead-centre in the 56px pill instead of being pushed up.
+              paddingBottom: 0,
+              paddingHorizontal: 0,
               shadowColor: '#000',
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.18,
@@ -53,7 +57,7 @@ export default function TabsLayout() {
               elevation: 8,
             },
         tabBarActiveTintColor: colors.brass,
-        tabBarInactiveTintColor: colors.linen,
+        tabBarInactiveTintColor: '#FFFFFF',
         tabBarBackground: () => <TabBarBackground />,
       }}
     >

@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import MapView, { Callout, Marker } from 'react-native-maps';
@@ -44,12 +45,6 @@ type PointProps = { row: MapPoint };
 const SC_OPTIONS = { radius: 60, maxZoom: 16 };
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function pinFill(minutes: number): string {
-  if (minutes <= 45) return colors.ease.easy;
-  if (minutes <= 75) return colors.ease.mid;
-  return colors.ease.far;
-}
 
 function longitudeDeltaToZoom(lngDelta: number): number {
   return Math.min(20, Math.max(0, Math.round(Math.log2(360 / lngDelta))));
@@ -102,13 +97,15 @@ export function CourseMap({ rows, origin, allLoaded, onCoursePress }: Props) {
   }, [rows]);
 
   const clusters = useMemo(() => {
-    if (!isFinite(region.longitudeDelta) || !isFinite(region.latitudeDelta)) return [];
+    if (!Number.isFinite(region.longitudeDelta) || !Number.isFinite(region.latitudeDelta)) return [];
+    if (region.longitudeDelta <= 0 || region.latitudeDelta <= 0) return [];
     const bbox: BBox = [
       region.longitude - region.longitudeDelta / 2,
-      region.latitude - region.latitudeDelta / 2,
+      region.latitude  - region.latitudeDelta  / 2,
       region.longitude + region.longitudeDelta / 2,
-      region.latitude + region.latitudeDelta / 2,
+      region.latitude  + region.latitudeDelta  / 2,
     ];
+    if (!bbox.every(Number.isFinite)) return [];
     const zoom = longitudeDeltaToZoom(region.longitudeDelta);
     try {
       return scRef.current.getClusters(bbox, zoom);
@@ -119,16 +116,28 @@ export function CourseMap({ rows, origin, allLoaded, onCoursePress }: Props) {
   }, [region, indexVersion]);
 
   const handleClusterPress = useCallback((clusterId: number, lat: number, lng: number) => {
+    // Pre-flight: coordinates must be valid geographic values
+    if (!Number.isFinite(lat) || !Number.isFinite(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) return;
+
+    let expZoom: number;
     try {
-      const expZoom = Math.min(scRef.current.getClusterExpansionZoom(clusterId), 16);
-      const delta = 360 / Math.pow(2, expZoom);
-      mapRef.current?.animateToRegion(
-        { latitude: lat, longitude: lng, latitudeDelta: delta * 0.9, longitudeDelta: delta },
-        350,
-      );
+      expZoom = scRef.current.getClusterExpansionZoom(clusterId);
     } catch {
-      // cluster may no longer exist at new zoom
+      return;
     }
+
+    if (!Number.isFinite(expZoom)) return;
+    // Clamp to [1,14] — maxZoom+1 (17) produces delta ~0.003 which crashes MapKit natively
+    const clampedZoom = Math.min(Math.max(expZoom, 1), 14);
+    const delta    = Math.max(360 / Math.pow(2, clampedZoom), 0.005);
+    const latDelta = Math.max(delta * 0.9, 0.005);
+
+    if (!Number.isFinite(delta) || !Number.isFinite(latDelta)) return;
+
+    mapRef.current?.animateToRegion(
+      { latitude: lat, longitude: lng, latitudeDelta: latDelta, longitudeDelta: delta },
+      350,
+    );
   }, []);
 
   return (
@@ -182,7 +191,6 @@ export function CourseMap({ rows, origin, allLoaded, onCoursePress }: Props) {
         }
 
         const { row } = props as PointProps;
-        const fill = pinFill(row.score.minutes);
         const isMember = row.access === 'M';
         const timeStr = row.score.minutes < 9999 ? band(row.score.minutes) : '—';
         const routeDesc = routeLabel(row.journey, row.geo);
@@ -200,6 +208,7 @@ export function CourseMap({ rows, origin, allLoaded, onCoursePress }: Props) {
             : row.access === 'V'
             ? colors.access.visitors.fg
             : colors.access.members.fg;
+        const pinFill = isMember ? colors.burgundy : colors.pine;
 
         return (
           <Marker
@@ -209,12 +218,18 @@ export function CourseMap({ rows, origin, allLoaded, onCoursePress }: Props) {
             anchor={{ x: 0.5, y: 0.5 }}
             onCalloutPress={() => onCoursePress(row.id)}
           >
-            <View style={[
-              styles.pin,
-              { backgroundColor: fill },
-              isMember && styles.pinMember,
-            ]}>
-              {isMember && <Text style={styles.pinM}>M</Text>}
+            {/* 40px touch area → white halo (30px) → brass ring (26px) → fill (22px) */}
+            <View style={styles.pinTouch}>
+              <View style={styles.pinHalo}>
+                <View style={styles.pinBrass}>
+                  <View style={[styles.pinFill, { backgroundColor: pinFill }]}>
+                    {isMember
+                      ? <Ionicons name="lock-closed" size={9} color="#fff" />
+                      : <Ionicons name="flag"        size={9} color="#fff" />
+                    }
+                  </View>
+                </View>
+              </View>
             </View>
 
             <Callout tooltip={false}>
@@ -268,29 +283,40 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
 
-  pin: {
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    borderWidth: 2,
-    borderColor: '#fff',
+  // Individual course pin — 40px transparent touch target wraps 30/26/22px rings
+  pinTouch: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pinHalo: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    backgroundColor: '#fff',
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.35,
+    shadowRadius: 3,
+    elevation: 5,
   },
-  pinMember: {
-    borderWidth: 3,
-    borderColor: colors.access.members.bg,
+  pinBrass: {
+    width: 26,
+    height: 26,
+    borderRadius: 13,
+    backgroundColor: colors.brass,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  pinM: {
-    fontSize: 7,
-    fontFamily: font.sansMed,
-    color: '#fff',
-    lineHeight: 9,
+  pinFill: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   cluster: {

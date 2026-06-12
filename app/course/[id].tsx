@@ -3,13 +3,13 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { getCourseById, getStationById } from '@/src/data';
 import { getJourney, tflKeyPresent } from '@/src/journey';
@@ -165,7 +165,7 @@ export default function CourseScreen() {
 
   if (!course) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
         <StatusBar style="light" />
         <View style={styles.content}>
           <View style={styles.header}>
@@ -181,7 +181,7 @@ export default function CourseScreen() {
 
   if (!origin) {
     return (
-      <SafeAreaView style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
         <StatusBar style="light" />
         <View style={styles.content}>
           <View style={styles.header}>
@@ -202,7 +202,7 @@ export default function CourseScreen() {
   const carCourse = isCarTier(course.lastMile);
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={["top"]}>
       <StatusBar style="light" />
       <View style={styles.content}>
 

@@ -153,9 +153,6 @@ export default function MapTab() {
         })}
       </MapView>
 
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{courses.length} courses</Text>
-      </View>
     </View>
   );
 }
@@ -225,18 +222,4 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
-  badge: {
-    position: 'absolute',
-    top: 52,
-    left: 12,
-    backgroundColor: 'rgba(2,60,42,0.88)',
-    borderRadius: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  badgeText: {
-    fontFamily: font.sansMed,
-    fontSize: 12,
-    color: colors.linen,
-  },
 });
