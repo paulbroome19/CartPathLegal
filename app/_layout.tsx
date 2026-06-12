@@ -1,56 +1,52 @@
+import { Fraunces_500Medium } from '@expo-google-fonts/fraunces/500Medium';
+import { Fraunces_600SemiBold } from '@expo-google-fonts/fraunces/600SemiBold';
+import { Inter_400Regular } from '@expo-google-fonts/inter/400Regular';
+import { Inter_500Medium } from '@expo-google-fonts/inter/500Medium';
+import { Inter_600SemiBold } from '@expo-google-fonts/inter/600SemiBold';
 import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/components/useColorScheme';
+import CartLoader from '@/components/CartLoader';
 
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+const MIN_LOADER_MS = 1500;
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Fraunces_500Medium,
+    Fraunces_600SemiBold,
+    Inter_400Regular,
+    Inter_500Medium,
+    Inter_600SemiBold,
   });
+  const [minTimeElapsed, setMinTimeElapsed] = useState(false);
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
 
+  // Minimum display time so the loader is visible even when fonts are pre-registered.
+  // The timer always fires; it cannot block the app indefinitely.
   useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
+    const t = setTimeout(() => setMinTimeElapsed(true), MIN_LOADER_MS);
+    return () => clearTimeout(t);
+  }, []);
 
-  if (!loaded) {
-    return null;
-  }
+  useEffect(() => {
+    if (loaded && minTimeElapsed) SplashScreen.hideAsync();
+  }, [loaded, minTimeElapsed]);
 
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+  if (!loaded || !minTimeElapsed) return <CartLoader />;
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="course/[id]" options={{ animation: 'slide_from_right' }} />
+      <Stack.Screen name="about" options={{ animation: 'slide_from_right' }} />
+    </Stack>
   );
 }

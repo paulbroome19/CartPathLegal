@@ -1,14 +1,18 @@
 {
   "expo": {
-    "name": "cartpath",
+    "name": "Cart Path",
     "slug": "cartpath",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cartpath",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.paulbroome.cartpath",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +21,8 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.paulbroome.cartpath"
     },
     "web": {
       "bundler": "metro",
@@ -33,10 +38,35 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
+      ],
+      ["expo-font", {
+        "fonts": [
+          "./node_modules/@expo-google-fonts/fraunces/500Medium/Fraunces_500Medium.ttf",
+          "./node_modules/@expo-google-fonts/fraunces/600SemiBold/Fraunces_600SemiBold.ttf",
+          "./node_modules/@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf",
+          "./node_modules/@expo-google-fonts/inter/500Medium/Inter_500Medium.ttf",
+          "./node_modules/@expo-google-fonts/inter/600SemiBold/Inter_600SemiBold.ttf"
+        ]
+      }],
+      "expo-web-browser",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.1"
+          }
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "tflKey": "705a4fc61e1e42bdae33f6b22450d96a",
+      "router": {},
+      "eas": {
+        "projectId": "9bc68ce6-3ade-49a7-adc9-75992da261a1"
+      }
     }
   }
 }

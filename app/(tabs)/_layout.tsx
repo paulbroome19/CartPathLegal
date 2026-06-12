@@ -1,70 +1,91 @@
-import { SymbolView } from 'expo-symbols';
-import { Link, Tabs } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Tabs, useSegments } from 'expo-router';
+import { Dimensions, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { colors } from '@/src/theme';
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+const PILL_HEIGHT = 56;
+const PILL_WIDTH  = 150;
+const PILL_SIDE   = Math.floor((Dimensions.get('window').width - PILL_WIDTH) / 2);
+
+function TabBarBackground() {
+  return (
+    <View style={[StyleSheet.absoluteFillObject, styles.bgRow]} pointerEvents="none">
+      <View style={{ flex: 1 }} />
+      <View style={styles.divider} />
+      <View style={{ flex: 1 }} />
+    </View>
+  );
+}
+
+export default function TabsLayout() {
+  const segments   = useSegments();
+  const insets     = useSafeAreaInsets();
+  const hideTabBar = (segments as string[]).includes('results');
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarItemStyle: {
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: 0,
+        },
+        tabBarStyle: hideTabBar
+          ? ({ display: 'none' } as const)
+          : {
+              position: 'absolute',
+              left: PILL_SIDE,
+              right: PILL_SIDE,
+              bottom: insets.bottom + 4,
+              height: PILL_HEIGHT,
+              borderRadius: 28,
+              backgroundColor: colors.pine,
+              borderTopWidth: 0,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.18,
+              shadowRadius: 12,
+              elevation: 8,
+            },
+        tabBarActiveTintColor: colors.brass,
+        tabBarInactiveTintColor: colors.linen,
+        tabBarBackground: () => <TabBarBackground />,
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="(search)"
         options={{
-          title: 'Tab One',
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
-          ),
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable style={{ marginRight: 15 }}>
-                {({ pressed }) => (
-                  <SymbolView
-                    name={{ ios: 'info.circle', android: 'info', web: 'info' }}
-                    size={25}
-                    tintColor={Colors[colorScheme].text}
-                    style={{ opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+            <Ionicons name="search" size={22} color={color} />
           ),
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="map"
         options={{
-          title: 'Tab Two',
           tabBarIcon: ({ color }) => (
-            <SymbolView
-              name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
-              }}
-              tintColor={color}
-              size={28}
-            />
+            <Ionicons name="map" size={22} color={color} />
           ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  bgRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+  },
+  divider: {
+    width: 1,
+    marginVertical: 10,
+    backgroundColor: colors.brass,
+    opacity: 0.6,
+  },
+});
