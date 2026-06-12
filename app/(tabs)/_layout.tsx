@@ -39,8 +39,8 @@ export default function TabsLayout() {
           ? ({ display: 'none' } as const)
           : {
               position: 'absolute',
-              left: PILL_SIDE,
-              right: PILL_SIDE,
+              start: PILL_SIDE,
+              end: PILL_SIDE,
               bottom: insets.bottom + 4,
               height: PILL_HEIGHT,
               borderRadius: 28,
